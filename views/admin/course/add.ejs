@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html class='no-js' lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta content='IE=edge,chrome=1' http-equiv='X-UA-Compatible'>
+  <title>管理员面板 - 北航附中选修课报名系统</title>
+  <link href="/css/application-a07755f5.css" rel="stylesheet" type="text/css" />
+  <link href="/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+  <link href="/css/iconfont.css" rel="stylesheet" type="text/css"></head>
+<body class='main page'>
+  <% include ../include/header.ejs %>
+  <div id='wrapper'>
+    <% include ../include/sidebar.ejs %>
+    <section id='tools'>
+      <ul class='breadcrumb' id='breadcrumb'>
+        <li>
+          <a href="/admin/course">课程清单</a>
+        </li>
+        <li>
+          <a href="/admin/course/import">导入课程</a>
+        </li>
+        <li class="active">增加课程</li>
+      </ul>
+    </section>
+    <div id='content'>
+      <div class='panel panel-default'>
+        <div class='panel-heading'>增加课程</div>
+        <div class='panel-body'>
+          <div class="row">
+            <div class="col-lg-5">
+              <p>课程编号：</p>
+              <p>
+                <input type="text" checkvalid class="form-control" id="cidtxt"></p>
+              <p>
+                课程名称：
+              </p>
+              <p>
+                <input type="text" checkvalid class="form-control" id="nameTxt">
+              </p>
+              <p>
+                星期几：
+              </p>
+              <p>
+                <select  id="dayofweedselect">
+                  <option value="周二">周二</option>
+                  <option value="周三">周三</option>
+                  <option value="周五">周五</option>
+                </select>
+              </p>
+              <p>
+                可报年级：
+              </p>
+              <p>
+                <label><input type="checkbox" name="allowcheck" value="初一">初一</label>
+                <label><input type="checkbox" name="allowcheck" value="初二">初二</label>
+                <label><input type="checkbox" name="allowcheck" value="初三">初三</label>
+                <label><input type="checkbox" name="allowcheck" value="高一">高一</label>
+                <label><input type="checkbox" name="allowcheck" value="高二">高二</label>
+                <label><input type="checkbox" name="allowcheck" value="高三">高三</label>
+              </p>
+              <p>
+                可报人数
+              </p>
+              <p>
+                <input type="text" checkvalid class="form-control" id="numberTxt"/>
+              </p>
+              <p>
+                老师：
+              </p>
+              <p>
+                <input type="text" checkvalid class="form-control" id="teacherTxt"/>
+              </p>
+              <p>
+                简介：
+              </p>
+              <p>
+                <textarea id="briefintrotextarea" class="form-control"  cols="70" rows="10"></textarea>
+              </p>
+              <p>
+                <input type="button" class="btn btn-success" value="提交" id="submitBtn">
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="/js/jquery.min.js"></script>
+  <script type="text/javascript" src="/js/bootstrap.js"></script>
+  <script type="text/javascript">
+    //提交按钮
+    $("#submitBtn").click(function(){
+        var cid = $("#cidtxt").val();
+        var name = $("#nameTxt").val();
+        var dayofweek = $("#dayofweedselect").val();
+        var allow= (function(){
+          var arr = [];
+          $("input[name=allowcheck]:checked").each(function(){
+           arr.push($(this).val());
+          });
+          return arr;
+        })();
+
+        var number = $("#numberTxt").val();
+        var teacher = $("#teacherTxt").val();
+        var briefintro = $("#briefintrotextarea").val();
+        
+        $.ajax({
+          "url" : "/course",
+          "data" : {
+            cid : cid,
+            name : name,
+            dayofweek : dayofweek,
+            allow : allow,
+            number : number,
+            teacher : teacher,
+            briefintro : briefintro
+          },
+          "datatype" : "json",
+          "type" : "post",
+          "traditional" : true,
+          "success" : function(data){
+            if(data.result == -3){
+              alert("编号冲突！");
+            }else{
+              alert("提交成功！");
+            }
+          }
+        });
+    });
+  </script>
+</body>
+</html>

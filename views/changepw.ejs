@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html class='no-js' lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta content='IE=edge,chrome=1' http-equiv='X-UA-Compatible'>
+  <title>更改密码 - 北航附中选修课报名系统</title>
+  <link href="/css/iconfont.css" rel="stylesheet" type="text/css"></head>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  
+<body class='main page'>
+ <nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">北航附中选修课报名系统</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li><a href="/">选课报名</a></li>
+        <li><a href="/my">我的选课</a></li>
+        <li class="active"><a>修改密码</a></li>
+      </ul>
+      
+      <ul class="nav navbar-nav navbar-right">
+        <li><a>欢迎你，<%= name %>（<%= sid %>），你已经成功登录</a></li>
+        <li><a href="/logout">退出登录</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+<div class="container">
+  <div class="row">
+    <h1>修改密码</h1>
+    <hr>
+    <% if(showtip){%>
+      <div class="alert alert-danger">系统检测到你正在使用初始密码登录，我们要求你更改密码后才能使用本系统。</div>
+    <% } %>
+    <div class="col-lg-6">
+      <p>设置密码：</p>
+      <p>
+        <input id="pw1" type="password" class="form-control">
+      </p>
+      <p>
+        重复密码：
+      </p>
+      <p>
+        <input  id="pw2" type="password" class="form-control">
+      </p>
+      <p>
+        <input type="button" value="更改密码" class="btn btn-success" id="submitbtn">
+      </p>
+    </div>
+  </div>
+</div>
+
+  <script type="text/javascript" src="/js/jquery.min.js"></script>
+  <script type="text/javascript" src="/js/bootstrap.js"></script>
+  <script type="text/javascript">
+   	  $("#submitbtn").click(function(){
+        //验证是否一致
+        if($("#pw1").val() !== $("#pw2").val()){
+          alert("两次输入的密码不一致！");
+          return;
+        }
+
+        $.post("/changepw",{
+          "pw" : $("#pw1").val()
+        },function(data){
+          if(data.result == 1){
+            alert("修改成功！现在将帮你退出系统，请用新密码登录！");
+            window.location = "/logout";
+          }else{
+            alert("修改失败！请联系管理员！");
+          }
+        });
+      });
+  </script>
+</body>
+</html>

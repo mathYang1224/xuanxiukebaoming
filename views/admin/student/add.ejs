@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class='no-js' lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta content='IE=edge,chrome=1' http-equiv='X-UA-Compatible'>
+  <title>管理员面板 - 北航附中选修课报名系统</title>
+  <link href="/css/application-a07755f5.css" rel="stylesheet" type="text/css" />
+  <link href="/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+  <link href="/css/iconfont.css" rel="stylesheet" type="text/css"></head>
+<body class='main page'>
+  <% include ../include/header.ejs %>
+  <div id='wrapper'>
+    <% include ../include/sidebar.ejs %>
+    <section id='tools'>
+      <ul class='breadcrumb' id='breadcrumb'>
+        <li>
+          <a href="/admin/student">学生清单</a>
+        </li>
+        <li>
+          <a href="/admin/student/import">导入学生</a>
+        </li>
+        <li class="active">
+           增加学生 
+        </li>
+      </ul>
+    </section>
+    <div id='content'>
+      <div class='panel panel-default'>
+        <div class='panel-heading'>
+          增加学生
+        </div>
+        <div class='panel-body'>
+            <div class="row">
+                <div class="col-lg-5">
+                  <p>
+                    学号：
+                  </p>
+                  <p>
+                    <input type="text" class="form-control" id="sidTxt" checkvalid>
+                  </p>
+                  <p>
+                    姓名：
+                  </p>
+                   <p>
+                    <input type="text" class="form-control" id="nameTxt" checkvalid>
+                  </p>
+                  <p>
+                    年级：
+                  </p>
+                  <p>
+                    <select class="form-control" id="gradeSelect" checkvalid>
+                      <option value="">请选择</option>
+                      <option value="初一">初一</option>
+                      <option value="初二">初二</option>
+                      <option value="初三">初三</option>
+                      <option value="高一">高一</option>
+                      <option value="高二">高二</option>
+                      <option value="高三">高三</option>
+                    </select>
+                  </p>
+                  <p>
+                    初始密码：
+                  </p>
+                   <p>
+                    <input checkvalid type="text" class="form-control" id="passwordTxt">
+                  </p>
+                  <p>
+                    <input type="button" value="提交" id="submitBtn" class="btn btn-success" disabled/>
+                  </p>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="/js/jquery.min.js"></script>
+  <script type="text/javascript" src="/js/bootstrap.js"></script>
+  <script type="text/javascript">
+    //设置一个“不合法”的对象
+    //对象中的键表示true此项不合法，false表示此项合法
+    //有罪推定
+    var invalid = {
+        "sid"   : true,
+        "name"  : true,
+        "grade" : true,
+        "password" : true
+    };
+
+    //拓展jQuery的功能，实际上和普通调用函数相比，就是优雅了一些
+    $.fn.extend({
+        "dangerTip" : function(txt){
+            //this表示调用函数的那个jQuery对象
+            this.after(
+                $("<div class='alert myalert alert-danger' role='alert'>" + txt + "</div>")
+            );
+        },
+        "successTip" : function(txt){
+            //this表示调用函数的那个jQuery对象
+            this.after(
+                $("<div class='alert myalert alert-success' role='alert'>" + txt + "</div>")
+            );
+        },
+        "clearTip" : function(){
+            //删除自己右面的那个alert div
+            this.nextAll(".alert").remove();
+        }
+    });
+
+    //学号的验证
+    $("#sidTxt").blur(function(){
+        //学号必须是9位数字
+        var _sid = $(this).val();
+        //验证9位是不是满足
+        if(!/^[\d]{9}$/.test(_sid)){
+            //非法
+            invalid.name = true;
+            $(this).dangerTip("没有通过正则验证，必须是9位数字！");
+            return;
+        }
+
+        var $this = $(this);
+        //验证是否被占用
+        $.ajax({
+          "url" : "/student/" + _sid,
+          "type" : "propfind",
+          "success" : function(data){
+            if(data.result == 0){
+              invalid.sid = false;
+              $this.successTip("经服务器检查，和现有学号不重复！");
+            }else if(data.result > 0){
+              invalid.sid = true;
+             $this.dangerTip("重复的学号，请重新输入！");
+            }else{
+              invalid.sid = true;
+              $this.dangerTip("服务器错误！");
+            }
+          }
+        });
+    });
+
+    //姓名验证
+    $("#nameTxt").blur(function(){
+        //姓名
+        var nameTxt = $(this).val();
+        //验证
+        if(/^[\u4E00-\u9FA5]{2,5}(?:·[\u4E00-\u9FA5]{2,5})*$/.test(nameTxt)){
+            //合法，这项没有犯错
+            invalid.name = false;
+            $(this).successTip("合法");
+        }else{
+            //非法
+            invalid.name = true;
+            $(this).dangerTip("没有通过正则验证，必须合法中文！");
+        }
+    });
+
+     //年级验证
+    $("#gradeSelect").change(function(){
+        //姓名
+        var grade = $(this).val();
+        //验证
+        if(grade){
+            //合法，这项没有犯错
+            invalid.grade = false;
+        }else{
+            //非法
+            invalid.grade = true;
+        }
+    });
+
+    $("#passwordTxt").change(function(){
+        //姓名
+        var password = $(this).val();
+        //验证
+        if(checkStrength(password) == 3){
+            //合法，这项没有犯错
+            invalid.password = false;
+            $(this).successTip("正确");
+        }else{
+            //非法
+            invalid.password = true;
+            $(this).dangerTip("密码必须有小写字母、大写字母、符号、数字中的3种，最少6位");
+        }
+    });
+
+    //上网抄的正则密码强度验证http://www.cnblogs.com/yjzhu/p/3394717.html
+    function checkStrength(password){
+        //积分制
+        var lv = 0;
+        if(password.match(/[a-z]/g)){lv++;}
+        if(password.match(/[0-9]/g)){lv++;}
+        if(password.match(/(.[^a-z0-9])/g)){lv++;}
+        if(password.length < 6){lv=0;}
+        if(lv > 3){lv=3;}
+
+        return lv;
+    }
+
+
+    //当所有身上标有checkvalid属性的表单元素（可能是text框、可能是select下拉框）一旦值更改了，我们就决定一次提交按钮是否可用。
+    $("[checkvalid]").blur(function(){
+        //是不是所有都合法
+        var allValid = true;
+        for(var k in invalid){
+            //如果有某项有错误，invalid对象中值是true，不需要验证的了。
+            if(invalid[k]){
+                allValid = false;
+                break;
+            }
+        }
+        //如果所有人都合法，此时允许提交按钮的点击
+        if(allValid){
+            $("#submitBtn").attr("disabled",false);
+        }else{
+             $("#submitBtn").attr("disabled",true);
+        }
+
+        console.log(invalid)
+    });
+
+    //当聚焦的时候，自己应该去掉tip框
+    $("[checkvalid]").bind("focus",function(){
+        $(this).clearTip();
+    });
+
+
+    //提交按钮
+    $("#submitBtn").click(function(){
+        var sid = $("#sidTxt").val();
+        var name = $("#nameTxt").val();
+        var grade = $("#gradeSelect").val();
+        var password= $("#passwordTxt").val();
+        
+        $.post("/student",{
+            sid : sid,
+            name : name,
+            grade : grade,
+            password : password
+        },function(data){
+            if(data.result == 1){
+                alert("成功添加！");
+                $("input[type=text]").val("");
+                //设置非法对象
+                var invalid = {
+                    "sid"   : true,
+                    "name"  : true,
+                    "grade" : true,
+                    "password" : true
+                };
+            }else if(data.result == -2){
+                alert("我不知道你怎么躲过了正则验证，但是服务器发现了你用户名不和规范");
+            }else if(data.result == -3){
+                alert("我不知道你怎么躲过了正则验证，但是服务器发现了你用户名冲突");
+            }else if(data.result == -4){
+                alert("我不知道你怎么躲过了正则验证，但是服务器发现了不合法的姓名！");
+            }else if(data.result == -5){
+                alert("我不知道你怎么躲过了正则验证，但是你没有选择年级！");
+            }else if(data.result == -6){
+                alert("我不知道你怎么躲过了正则验证，你密码强度不够！");
+            }
+        });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class='no-js' lang='en'>
+<head>
+  <meta charset='utf-8'>
+  <meta content='IE=edge,chrome=1' http-equiv='X-UA-Compatible'>
+  <title>北航附中选修课报名系统</title>
+  <link href="/css/iconfont.css" rel="stylesheet" type="text/css"></head>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <style type="text/css">
+    .btn[disabled]{
+      cursor: not-allowed;
+      pointer-events: auto;
+    };
+  </style>
+  
+<body class='main page'>
+ <nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">北航附中选修课报名系统</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">选课报名</a></li>
+        <li><a href="#">我的选课</a></li>
+        <li><a href="/changepw">修改密码</a></li>
+      </ul>
+      
+      <ul class="nav navbar-nav navbar-right">
+        <li><a>欢迎你，<%= name %>（<%= sid %>，<%= grade %>学生），你已经成功登录</a></li>
+        <li><a href="/logout">退出登录</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+  <div class="container">
+    <div class="row">
+        <table class="table" id="table">
+          <tr>
+            <th style="width:80px;">课程编号</th>
+            <th style="width:160px;">名称</th>
+            <th style="width:80px;">星期几</th>
+            <th style="width:120px;">可选年级</th>
+            <th style="width:80px;">人数</th>
+            <th style="width:120px;">老师</th>
+            <th>简介</th>
+            <th>报名</th>
+          </tr>
+          
+        </table>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="/js/jquery.min.js"></script>
+  <script type="text/javascript" src="/js/bootstrap.js"></script>
+  <script type="text/javascript">
+   	  //发出Ajax命令读取接口
+      $.get("/check",function(results){
+        $.get("/course",function(data){
+            $.each(data.rows,function(index,item){
+              var $tr = $("<tr></tr>");
+              $tr.append("<td>" + item.cid +"</td>");
+              $tr.append("<td>" + item.name +"</td>");
+              $tr.append("<td>" + item.dayofweek +"</td>");
+              $tr.append("<td>" + item.allow +"</td>");
+              $tr.append("<td>" + item.number +"</td>");
+              $tr.append("<td>" + item.teacher +"</td>");
+              $tr.append("<td>" + item.briefintro +"</td>");
+              $tr.append("<td><input type='button' class='btn bmbtn'  value='' id='bmbtn" + item.cid + "' data-cid='" + item.cid + "' /></td>");
+              //上树
+              $("#table").append($tr);
+              //更改按钮的形态、样式、文本
+              $("#bmbtn" + item.cid).val(results[item.cid]);
+              if(results[item.cid] == "可以报名"){
+                $("#bmbtn" + item.cid).addClass("btn-success");
+              }else if(results[item.cid] == "已经报名此课"){
+                $("#bmbtn" + item.cid).attr("disabled",true).after("<p><a href='javascript:void(0);' class='tbbtn' data-role='tuibao' data-cid=" + item.cid + ">已经报名，点击退报</a></p>")
+              }else{
+                $("#bmbtn" + item.cid).attr("disabled",true);
+              }
+            });
+        });
+      });
+
+
+      //当你这个元素是动态创建的，需要报名，此时记住有一个事件委托
+      $("#table").delegate(".bmbtn","click",function(){
+          $.post("/baoming",{
+            "cid" : $(this).attr("data-cid")
+          },function(data){
+            if(data.result == 1){
+              alert("报名成功！");
+              //刷新本页
+              window.location.reload();
+            }
+          });
+      });
+
+      //退报名
+       $("#table").delegate(".tbbtn","click",function(){
+          $.post("/tuibao",{
+            "cid" : $(this).attr("data-cid")
+          },function(data){
+             if(data.result == 1){
+              alert("退报成功！");
+              //刷新本页
+              window.location.reload();
+            }
+          });
+      });
+  </script>
+</body>
+</html>
